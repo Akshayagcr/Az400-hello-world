@@ -79,5 +79,15 @@ jobs:
           command: 'buildAndPush'
           Dockerfile: '$(System.DefaultWorkingDirectory)/Dockerfile'
           tags: '$(tag)'
-
+  - job: deployImage
+    steps:
+      - task: AzureRmWebAppDeployment@4
+        inputs:
+          ConnectionType: 'AzureRM'
+          azureSubscription: 'Azure Pass - Sponsorship(bf20aa44-1fd9-4409-9be0-4dd23e8b9346)'
+          appType: 'webAppContainer'
+          WebAppName: 'akshayagcr'
+          DockerNamespace: 'akshayagcr.azurecr.io'
+          DockerRepository: 'akshaysuccessv1'
+          AppSettings: 'WEBSITES_PORT=8080'
 
