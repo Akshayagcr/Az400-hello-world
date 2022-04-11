@@ -21,13 +21,18 @@ steps:
     mavenAuthenticateFeed: false
     effectivePomSkip: false
     sonarQubeRunAnalysis: false
-- task: CopyFiles@2
-  inputs:
-    Contents: '**/target/**'
-    TargetFolder: '$(build.artifactstagingdirectory)'
+# - task: CopyFiles@2
+#   inputs:
+#     Contents: '**/target/**'
+#     TargetFolder: '$(build.artifactstagingdirectory)'
+# - task: PublishBuildArtifacts@1
+#   inputs:
+#     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+#     ArtifactName: 'drop'
+
+
 - task: PublishBuildArtifacts@1
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    PathtoPublish: '$(System.DefaultWorkingDirectory)/**/target/'
     ArtifactName: 'drop'
-
-
+    publishLocation: 'Container'
