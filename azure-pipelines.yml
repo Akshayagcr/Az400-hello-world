@@ -19,7 +19,7 @@ pool:
   vmImage: ubuntu-latest
 
 jobs:
-  - job: build
+  - job: buildArtifact
     steps:
       - task: Maven@3
         inputs:
@@ -46,6 +46,8 @@ jobs:
           ArtifactName: 'drop'
 
   - job: buildImage
+    dependsOn: buildArtifact
+    condition: succeeded()
     steps:
       - task: DownloadBuildArtifacts@1
         inputs:
@@ -53,15 +55,14 @@ jobs:
           downloadType: 'single'
           artifactName: 'drop'
           itemPattern: 'target/**'
-          downloadPath: '$(System.ArtifactsDirectory)'
-      # - task: Docker@2
-      #     displayName: Build and push an image to container registry
-      #     inputs:
-      #       containerRegistry: '$(dockerRegistryServiceConnection)'
-      #       repository: '$(imageRepository)'
-      #       command: 'buildAndPush'
-      #       Dockerfile: '**/Dockerfile'
-      #       buildContext: '$(System.ArtifactsDirectory)'
-      #       tags: '$(tag)'
+          downloadPath: '$(System.DefaultWorkingDirectory)'
+      - task: Docker@2
+        displayName: Build and push an image to container registry
+        inputs:
+          containerRegistry: '$(dockerRegistryServiceConnection)'
+          repository: '$(imageRepository)'
+          command: 'buildAndPush'
+          Dockerfile: '**/Dockerfile'
+          tags: '$(tag)'
 
 
