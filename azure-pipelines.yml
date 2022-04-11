@@ -83,13 +83,11 @@ jobs:
     dependsOn: buildImage
     condition: succeeded()
     steps:
-      - task: AzureRmWebAppDeployment@4
+      - task: AzureWebAppContainer@1
         inputs:
-          ConnectionType: 'AzureRM'
           azureSubscription: 'Azure Pass - Sponsorship(bf20aa44-1fd9-4409-9be0-4dd23e8b9346)'
-          appType: 'webAppContainer'
-          WebAppName: 'akshayagcr'
-          DockerNamespace: 'akshayagcr.azurecr.io'
-          DockerRepository: 'akshaysuccessv1'
-          AppSettings: '-WEBSITES_PORT 8080'
+          appName: 'akshayagcr'
+          containers: 'akshayagcr.azurecr.io/akshaysuccessv1:latest'
+          appSettings: '-WEBSITES_PORT 8080'
+
 
