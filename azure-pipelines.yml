@@ -6,32 +6,62 @@
 trigger:
   - master
 
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: '73185f31-4dff-4e3a-807a-aae20154736d'
+  imageRepository: 'akshaysuccessv1'
+  containerRegistry: 'akshayagcr.azurecr.io'
+  dockerfilePath: '**/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+
 pool:
   vmImage: ubuntu-latest
 
-steps:
-  - task: Maven@3
-    inputs:
-      mavenPomFile: 'pom.xml'
-      publishJUnitResults: false
-      javaHomeOption: 'JDKVersion'
-      jdkVersionOption: '1.11'
-      mavenVersionOption: 'Default'
-      mavenOptions: '-Xmx3072m'
-      mavenAuthenticateFeed: false
-      effectivePomSkip: false
-      sonarQubeRunAnalysis: false
-  - task: CopyFiles@2
-    inputs:
-      Contents: |
-        **/target/app.jar
-        **/target/applicationinsights.json
-        **/target/applicationinsights-agent.jar
-        **/target/Dockerfile
-      TargetFolder: '$(build.artifactstagingdirectory)'
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-      ArtifactName: 'drop'
+jobs:
+  - job: build
+    steps:
+      - task: Maven@3
+        inputs:
+          mavenPomFile: 'pom.xml'
+          publishJUnitResults: false
+          javaHomeOption: 'JDKVersion'
+          jdkVersionOption: '1.11'
+          mavenVersionOption: 'Default'
+          mavenOptions: '-Xmx3072m'
+          mavenAuthenticateFeed: false
+          effectivePomSkip: false
+          sonarQubeRunAnalysis: false
+      - task: CopyFiles@2
+        inputs:
+          Contents: |
+            **/target/app.jar
+            **/target/applicationinsights.json
+            **/target/applicationinsights-agent.jar
+            **/target/Dockerfile
+          TargetFolder: '$(build.artifactstagingdirectory)'
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          ArtifactName: 'drop'
+
+  - job: buildImage
+    steps:
+      - task: DownloadBuildArtifacts@1
+        inputs:
+          buildType: 'current'
+          downloadType: 'single'
+          artifactName: 'drop'
+          itemPattern: 'target/**'
+          downloadPath: '$(System.ArtifactsDirectory)'
+      - task: Docker@2
+          displayName: Build and push an image to container registry
+          inputs:
+            containerRegistry: '$(dockerRegistryServiceConnection)'
+            repository: '$(imageRepository)'
+            command: 'buildAndPush'
+            Dockerfile: '**/Dockerfile'
+            buildContext: '$(System.ArtifactsDirectory)'
+            tags: '$(tag)'
 
 

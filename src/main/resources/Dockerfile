@@ -1,7 +1,7 @@
 FROM openjdk:11.0.14-jre-slim
 
 EXPOSE 8080
-ADD target/app.jar app.jar
+ADD app.jar app.jar
 ADD applicationinsights-agent.jar applicationinsights-agent.jar
 ADD applicationinsights.json applicationinsights.json
 
