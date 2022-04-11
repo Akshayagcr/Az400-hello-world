@@ -91,5 +91,5 @@ jobs:
           WebAppName: 'akshayagcr'
           DockerNamespace: 'akshayagcr.azurecr.io'
           DockerRepository: 'akshaysuccessv1'
-          AppSettings: 'WEBSITES_PORT=8080'
+          AppSettings: '-WEBSITES_PORT 8080'
 
