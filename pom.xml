@@ -38,6 +38,21 @@
 					<finalName>app</finalName>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.2.0</version>
+				<configuration>
+					<outputDirectory>${basedir}/target/</outputDirectory>
+					<resources>
+						<resource>
+							<directory>src/main/resources</directory>
+							<excludes>
+							<exclude>application.properties</exclude>
+							</excludes>
+						</resource>
+					</resources>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
