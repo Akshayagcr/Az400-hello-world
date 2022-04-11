@@ -54,7 +54,7 @@ jobs:
           buildType: 'current'
           downloadType: 'single'
           artifactName: 'drop'
-          itemPattern: 'target/**'
+          itemPattern: 'target/'
           downloadPath: '$(System.DefaultWorkingDirectory)'
       
       - task: Bash@3
