@@ -80,6 +80,8 @@ jobs:
           Dockerfile: '$(System.DefaultWorkingDirectory)/Dockerfile'
           tags: '$(tag)'
   - job: deployImage
+    dependsOn: buildImage
+    condition: succeeded()
     steps:
       - task: AzureRmWebAppDeployment@4
         inputs:
