@@ -18,92 +18,105 @@ variables:
 pool:
   vmImage: ubuntu-latest
 
-jobs:
-  - job: buildArtifact
-    steps:
-      - task: Maven@3
-        inputs:
-          mavenPomFile: 'pom.xml'
-          publishJUnitResults: false
-          javaHomeOption: 'JDKVersion'
-          jdkVersionOption: '1.11'
-          mavenVersionOption: 'Default'
-          mavenOptions: '-Xmx3072m'
-          mavenAuthenticateFeed: false
-          effectivePomSkip: false
-          sonarQubeRunAnalysis: false
-      - task: CopyFiles@2
-        inputs:
-          Contents: |
-            **/target/app.jar
-            **/target/applicationinsights.json
-            **/target/applicationinsights-agent.jar
-            **/target/Dockerfile
-          TargetFolder: '$(build.artifactstagingdirectory)'
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-          ArtifactName: 'drop'
+# jobs:
+#   - job: buildArtifact
+#     steps:
+#       - task: Maven@3
+#         inputs:
+#           mavenPomFile: 'pom.xml'
+#           publishJUnitResults: false
+#           javaHomeOption: 'JDKVersion'
+#           jdkVersionOption: '1.11'
+#           mavenVersionOption: 'Default'
+#           mavenOptions: '-Xmx3072m'
+#           mavenAuthenticateFeed: false
+#           effectivePomSkip: false
+#           sonarQubeRunAnalysis: false
+#       - task: CopyFiles@2
+#         inputs:
+#           Contents: |
+#             **/target/app.jar
+#             **/target/applicationinsights.json
+#             **/target/applicationinsights-agent.jar
+#             **/target/Dockerfile
+#           TargetFolder: '$(build.artifactstagingdirectory)'
+#       - task: PublishBuildArtifacts@1
+#         inputs:
+#           PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+#           ArtifactName: 'drop'
 
-  - job: buildImage
-    dependsOn: buildArtifact
-    condition: succeeded()
-    steps:
-      - task: DownloadBuildArtifacts@1
-        inputs:
-          buildType: 'current'
-          downloadType: 'single'
-          artifactName: 'drop'
-          itemPattern: '*/*/*'
-          downloadPath: '$(System.DefaultWorkingDirectory)'
-      - task: CopyFiles@2
-        inputs:
-          SourceFolder: '$(System.DefaultWorkingDirectory)/drop/target/'
-          Contents: '**'
-          TargetFolder: '$(System.DefaultWorkingDirectory)'
-      - task: Bash@3
-        inputs:
-          targetType: 'inline'
-          script: |
-            # Write your commands here
+#   - job: buildImage
+#     dependsOn: buildArtifact
+#     condition: succeeded()
+#     steps:
+#       - task: DownloadBuildArtifacts@1
+#         inputs:
+#           buildType: 'current'
+#           downloadType: 'single'
+#           artifactName: 'drop'
+#           itemPattern: '*/*/*'
+#           downloadPath: '$(System.DefaultWorkingDirectory)'
+#       - task: CopyFiles@2
+#         inputs:
+#           SourceFolder: '$(System.DefaultWorkingDirectory)/drop/target/'
+#           Contents: '**'
+#           TargetFolder: '$(System.DefaultWorkingDirectory)'
+#       - task: Bash@3
+#         inputs:
+#           targetType: 'inline'
+#           script: |
+#             # Write your commands here
             
-            echo '***** System.DefaultWorkingDirectory *****'
-            ls
-          workingDirectory: '$(System.DefaultWorkingDirectory)'
+#             echo '***** System.DefaultWorkingDirectory *****'
+#             ls
+#           workingDirectory: '$(System.DefaultWorkingDirectory)'
       
-      - task: Docker@2
-        displayName: Build and push an image to container registry
-        inputs:
-          containerRegistry: '$(dockerRegistryServiceConnection)'
-          repository: '$(imageRepository)'
-          command: 'buildAndPush'
-          Dockerfile: '$(System.DefaultWorkingDirectory)/Dockerfile'
-          tags: '$(tag)'
-  - job: deployImage
-    dependsOn: buildImage
-    condition: succeeded()
-    steps:
-      - task: AzureCLI@2
-        inputs:
-          azureSubscription: 'Azure Pass - Sponsorship(bf20aa44-1fd9-4409-9be0-4dd23e8b9346)'
-          scriptType: 'bash'
-          scriptLocation: 'inlineScript'
-          inlineScript: |
-            SUBSCRIPTION_ID=az account show --query id --output tsv
+#       - task: Docker@2
+#         displayName: Build and push an image to container registry
+#         inputs:
+#           containerRegistry: '$(dockerRegistryServiceConnection)'
+#           repository: '$(imageRepository)'
+#           command: 'buildAndPush'
+#           Dockerfile: '$(System.DefaultWorkingDirectory)/Dockerfile'
+#           tags: '$(tag)'
+#   - job: deployImage
+#     dependsOn: buildImage
+#     condition: succeeded()
+#     steps:
+#       - task: AzureCLI@2
+#         inputs:
+#           azureSubscription: 'Azure Pass - Sponsorship(bf20aa44-1fd9-4409-9be0-4dd23e8b9346)'
+#           scriptType: 'bash'
+#           scriptLocation: 'inlineScript'
+#           inlineScript: |
+#             SUBSCRIPTION_ID=az account show --query id --output tsv
             
-            PRINCIPAL_ID=bd63aded-7170-417d-8a9b-19655ca4d5a0
+#             PRINCIPAL_ID=bd63aded-7170-417d-8a9b-19655ca4d5a0
             
-            az role assignment create --assignee $PRINCIPAL_ID --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/myResourceGroup/providers/Microsoft.ContainerRegistry/registries/akshayagcr.azurecr.io --role "AcrPull"
+#             az role assignment create --assignee $PRINCIPAL_ID --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/myResourceGroup/providers/Microsoft.ContainerRegistry/registries/akshayagcr.azurecr.io --role "AcrPull"
             
-            az resource update --ids /subscriptions/$SUBSCRIPTION_ID/resourceGroups/myResourceGroup/providers/Microsoft.Web/sites/akshayagcr/config/web --set properties.acrUseManagedIdentityCreds=True
-      - task: AzureRmWebAppDeployment@4
-        inputs:
-          ConnectionType: 'AzureRM'
-          azureSubscription: 'Azure Pass - Sponsorship(bf20aa44-1fd9-4409-9be0-4dd23e8b9346)'
-          appType: 'webAppContainer'
-          WebAppName: 'akshayagcr'
-          DockerNamespace: 'akshayagcr.azurecr.io'
-          DockerRepository: 'akshaysuccessv1'
-          AppSettings: '-WEBSITES_PORT 8080'
+#             az resource update --ids /subscriptions/$SUBSCRIPTION_ID/resourceGroups/myResourceGroup/providers/Microsoft.Web/sites/akshayagcr/config/web --set properties.acrUseManagedIdentityCreds=True
+#       - task: AzureRmWebAppDeployment@4
+#         inputs:
+#           ConnectionType: 'AzureRM'
+#           azureSubscription: 'Azure Pass - Sponsorship(bf20aa44-1fd9-4409-9be0-4dd23e8b9346)'
+#           appType: 'webAppContainer'
+#           WebAppName: 'akshayagcr'
+#           DockerNamespace: 'akshayagcr.azurecr.io'
+#           DockerRepository: 'akshaysuccessv1'
+#           AppSettings: '-WEBSITES_PORT 8080'
 
-
+steps:
+  - task: AzureCLI@2
+    inputs:
+      azureSubscription: 'Azure Pass - Sponsorship(bf20aa44-1fd9-4409-9be0-4dd23e8b9346)'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        SUBSCRIPTION_ID=bf20aa44-1fd9-4409-9be0-4dd23e8b9346
+        
+        PRINCIPAL_ID=bd63aded-7170-417d-8a9b-19655ca4d5a0
+        
+        az role assignment create --assignee $PRINCIPAL_ID --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/myResourceGroup/providers/Microsoft.ContainerRegistry/registries/akshayagcr.azurecr.io --role "AcrPull"
+        
+        az resource update --ids /subscriptions/$SUBSCRIPTION_ID/resourceGroups/myResourceGroup/providers/Microsoft.Web/sites/akshayagcr/config/web --set properties.acrUseManagedIdentityCreds=True
