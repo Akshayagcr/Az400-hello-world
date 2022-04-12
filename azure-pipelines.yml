@@ -83,21 +83,27 @@ jobs:
     dependsOn: buildImage
     condition: succeeded()
     steps:
-      - task: AzureCLI@2
-        inputs:
-          azureSubscription: 'Azure Pass - Sponsorship(bf20aa44-1fd9-4409-9be0-4dd23e8b9346)'
-          scriptType: 'bash'
-          scriptLocation: 'inlineScript'
-          inlineScript: |
-            SUBSCRIPTION_ID=bf20aa44-1fd9-4409-9be0-4dd23e8b9346
+      # used below commands in azure cloud shell to grant permissions to the web app to ACR
+      # As from pipeline it was showing following error
+      #
+      # ERROR: The client '51d25d63-31a0-4a83-b6e4-6d81c6156204' with object id '51d25d63-31a0-4a83-b6e4-6d81c6156204' does not have authorization to perform action 'Microsoft.Authorization/roleAssignments/write' over scope '/subscriptions/bf20aa44-1fd9-4409-9be0-4dd23e8b9346/resourceGroups/Test-Rg/providers/Microsoft.ContainerRegistry/registries/akshayagcr/providers/Microsoft.Authorization/roleAssignments/fc4ddcb9-017d-4c1d-a687-2af239010eb2' or the scope is invalid. If access was recently granted, please refresh your credentials.
+      #
+      # **************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************
+      # - task: AzureCLI@2
+      #   inputs:
+      #     azureSubscription: 'Azure Pass - Sponsorship(bf20aa44-1fd9-4409-9be0-4dd23e8b9346)'
+      #     scriptType: 'bash'
+      #     scriptLocation: 'inlineScript'
+      #     inlineScript: |
+      #       SUBSCRIPTION_ID=bf20aa44-1fd9-4409-9be0-4dd23e8b9346
             
-            PRINCIPAL_ID=bd63aded-7170-417d-8a9b-19655ca4d5a0
+      #       PRINCIPAL_ID=bd63aded-7170-417d-8a9b-19655ca4d5a0
 
-            RESOURCE_GROUP=Test-Rg
+      #       RESOURCE_GROUP=Test-Rg
             
-            az role assignment create --assignee $PRINCIPAL_ID --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.ContainerRegistry/registries/akshayagcr --role "AcrPull"
+      #       az role assignment create --assignee $PRINCIPAL_ID --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.ContainerRegistry/registries/akshayagcr --role "AcrPull"
             
-            az resource update --ids /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Web/sites/akshayagcr/config/web --set properties.acrUseManagedIdentityCreds=True
+      #       az resource update --ids /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Web/sites/akshayagcr/config/web --set properties.acrUseManagedIdentityCreds=True
       - task: AzureRmWebAppDeployment@4
         inputs:
           ConnectionType: 'AzureRM'
