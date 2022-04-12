@@ -83,16 +83,27 @@ jobs:
     dependsOn: buildImage
     condition: succeeded()
     steps:
-      # delete the below one task ir Docker@2
-      - task: Docker@2
-        inputs:
-          containerRegistry: 'akshayagcr-3793'
-          command: 'login'
-      - task: AzureWebAppContainer@1
+      - task: AzureCLI@2
         inputs:
           azureSubscription: 'Azure Pass - Sponsorship(bf20aa44-1fd9-4409-9be0-4dd23e8b9346)'
-          appName: 'akshayagcr'
-          containers: 'akshayagcr.azurecr.io/akshaysuccessv1:latest'
-          appSettings: '-WEBSITES_PORT 8080'
+          scriptType: 'bash'
+          scriptLocation: 'inlineScript'
+          inlineScript: |
+            SUBSCRIPTION_ID=az account show --query id --output tsv
+            
+            PRINCIPAL_ID=bd63aded-7170-417d-8a9b-19655ca4d5a0
+            
+            az role assignment create --assignee $PRINCIPAL_ID --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/myResourceGroup/providers/Microsoft.ContainerRegistry/registries/akshayagcr.azurecr.io --role "AcrPull"
+            
+            az resource update --ids /subscriptions/$SUBSCRIPTION_ID/resourceGroups/myResourceGroup/providers/Microsoft.Web/sites/akshayagcr/config/web --set properties.acrUseManagedIdentityCreds=True
+      - task: AzureRmWebAppDeployment@4
+        inputs:
+          ConnectionType: 'AzureRM'
+          azureSubscription: 'Azure Pass - Sponsorship(bf20aa44-1fd9-4409-9be0-4dd23e8b9346)'
+          appType: 'webAppContainer'
+          WebAppName: 'akshayagcr'
+          DockerNamespace: 'akshayagcr.azurecr.io'
+          DockerRepository: 'akshaysuccessv1'
+          AppSettings: '-WEBSITES_PORT 8080'
 
 
