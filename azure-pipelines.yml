@@ -116,7 +116,9 @@ steps:
         SUBSCRIPTION_ID=bf20aa44-1fd9-4409-9be0-4dd23e8b9346
         
         PRINCIPAL_ID=bd63aded-7170-417d-8a9b-19655ca4d5a0
+
+        RESOURCE_GROUP=Test-Rg
         
-        az role assignment create --assignee $PRINCIPAL_ID --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/myResourceGroup/providers/Microsoft.ContainerRegistry/registries/akshayagcr.azurecr.io --role "AcrPull"
+        az role assignment create --assignee $PRINCIPAL_ID --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.ContainerRegistry/registries/akshayagcr.azurecr.io --role "AcrPull"
         
-        az resource update --ids /subscriptions/$SUBSCRIPTION_ID/resourceGroups/myResourceGroup/providers/Microsoft.Web/sites/akshayagcr/config/web --set properties.acrUseManagedIdentityCreds=True
+        az resource update --ids /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Web/sites/akshayagcr/config/web --set properties.acrUseManagedIdentityCreds=True
