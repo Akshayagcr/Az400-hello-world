@@ -112,7 +112,7 @@ jobs:
           WebAppName: 'akshayagcr'
           DockerNamespace: 'akshayagcr.azurecr.io'
           DockerRepository: 'akshaysuccessv1'
-          DockerImageTag: '56'
+          DockerImageTag: '$(Build.BuildId)'
           AppSettings: '-WEBSITES_PORT 8080'
 
   
